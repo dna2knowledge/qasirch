@@ -1,0 +1,4 @@
+torch
+transformers
+pg8000
+pgvector
