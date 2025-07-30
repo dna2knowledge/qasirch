@@ -1,10 +1,10 @@
 import argparse
 import sys
-import numpy as np
 from typing import List, Union, Tuple
 import os
 import hashlib
 
+import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModel
 
@@ -102,21 +102,20 @@ def string2vector(text):
    encoder = BGEM3Encoder(model_path="/mnt/autofs/home/jl899795/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181", local_files_only=True)
    return encoder.encode(text)[0]
 
-################################################################
-# set
-def get_db_connection():
+def get_db_connection(args):
     """Create and return a database connection"""
     conn = pg8000.connect(
-        #unix_sock="/dbc/lvn-dbc2470/jl899795/bot/data",
-        host="localhost",
-        port=31201,
-        database="kg",
-        user="postgres",
-        password="postgres"
+        host=args.host,
+        port=args.port,
+        database=args.db,
+        user=args.user,
+        password=os.getenv("PG_PASSWORD", "")
     )
     register_vector(conn)
     return conn
 
+################################################################
+# set
 def create_tables_if_not_exist(conn):
     """Create necessary tables and indexes if they don't exist"""
     cursor = conn.cursor()
@@ -228,7 +227,7 @@ def do_set(args):
     conn = None
     try:
         # Connect to database
-        conn = get_db_connection()
+        conn = get_db_connection(args)
         
         # Create tables if needed
         create_tables_if_not_exist(conn)
@@ -253,8 +252,6 @@ def do_set(args):
     finally:
         if conn:
             conn.close()
-
-
 ################################################################
 
 ################################################################
@@ -287,7 +284,7 @@ def do_search(args):
     conn = None
     try:
         # Connect to database
-        conn = get_db_connection()
+        conn = get_db_connection(args)
         
         # Generate vector for the query
         print(f"Searching for: {query_question}")
@@ -329,6 +326,30 @@ def main():
         dest="command",  # This attribute will store the name of the chosen subcommand
         required=True,   # In Python 3.7+, this makes a subcommand mandatory
         help="Sub-command help"
+    )
+    parser.add_argument(
+        "--host", "-H",
+        type=str,
+        default="127.0.0.1",
+        help="The database host"
+    )
+    parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=5432,
+        help="The database port"
+    )
+    parser.add_argument(
+        "--user", "-U",
+        type=str,
+        default="postgres",
+        help="The database username"
+    )
+    parser.add_argument(
+        "--db", "-w",
+        type=str,
+        default="kg",
+        help="The database db name"
     )
     parser_set = subparsers.add_parser(
         "set",
