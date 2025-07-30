@@ -127,7 +127,7 @@ def create_tables_if_not_exist(conn):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS content (
             id SERIAL PRIMARY KEY,
-            filepath TEXT UNIQUE NOT NULL
+            filepath VARCHAR(1024) UNIQUE NOT NULL
         )
     """)
     
@@ -135,7 +135,7 @@ def create_tables_if_not_exist(conn):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS question (
             id SERIAL PRIMARY KEY,
-            question TEXT UNIQUE NOT NULL,
+            question VARCHAR(2048) UNIQUE NOT NULL,
             qv vector(1024)  -- Adjust dimension based on your string2vector output
         )
     """)
